@@ -53,6 +53,39 @@ These Node-RED recipes for the Omega2+ / Omega2 Pro demonstrate:
 - Log into [IBM Cloud](http://cloud.ibm.com)
 - Create a [Internet of Things Platform Starter](https://cloud.ibm.com/catalog/starters/internet-of-things-platform-starter)
 
+## Listening on all interfaces
+It seems that the auto-installed Node-RED listens only on the Omega's AP IP, not the STA one, so you need to be connected to the Omega's Wifi to use Node-RED's UI, which is not very convenient.
+
+A simple change to `node-red/red.js` can fix the issue, by removing the code that forces the IP to the one registered in UCI (the `exec` statement towards line 35.
+
+## Making Node-RED a service
+- Copy the following shell to `/etc/init.d/node-red`
+  ```
+  #!/bin/sh /etc/rc.common
+  # Copyright (C) 2018 Onion Corporation
+  #
+  START=99
+
+  USE_PROCD=1
+
+  BIN="/usr/bin/node-red"
+
+  start_service() {
+        procd_open_instance
+        procd_set_param command "$BIN"
+        procd_set_param respawn
+        procd_set_param stdout 1 # forward stdout of the command to logd
+        procd_set_param stderr 1 # same for stderr
+        procd_close_instance
+  }
+  ```
+- Make the file executable: `chmod a+x /etc/init.d/node-red`
+- Start the node-red service as `/etc/init.d/node-red start`
+- Add it as an auto-start service: `/etc/init.d/node-red enable`
+
+Work in progress, not sure how to get the logs yet, would be `logread -f` but no trace of node-red yet...
+
+Note: to remove auto-start for the pre-installed mosquitto, you can `/etc/init.d/mosquitto disable`
 
 ## Download
 
